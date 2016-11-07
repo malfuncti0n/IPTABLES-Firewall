@@ -44,3 +44,17 @@ echo 1 > /proc/sys/net/ipv4/conf/default/log_martians
 echo 0 > /proc/sys/net/ipv4/tcp_ecn
 
 
+# Clear all rules
+/sbin/iptables -F
+
+# Don't forward traffic
+/sbin/iptables -P FORWARD DROP 
+
+# Allow outgoing traffic
+/sbin/iptables -P OUTPUT ACCEPT
+
+# Allow established traffic
+/sbin/iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT 
+
+# Allow localhost traffic
+/sbin/iptables -A INPUT -i lo -j ACCEPT
