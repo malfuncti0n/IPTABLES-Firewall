@@ -58,3 +58,39 @@ echo 0 > /proc/sys/net/ipv4/tcp_ecn
 
 # Allow localhost traffic
 /sbin/iptables -A INPUT -i lo -j ACCEPT
+
+
+
+#############################
+# Allow ssh for managment
+# but secure from brute force 
+#############################
+
+#Disable brute force attack 
+iptables -A INPUT -p tcp --dport $SSHPORT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p tcp --dport $SSHPORT -m state --state NEW -m limit --limit 3/min --limit-burst 3 -j LOG --log-level 7 --log-prefix "Accept ssh port"
+iptables -A INPUT -p tcp --dport $SSHPORT -m state --state NEW -m limit --limit 3/min --limit-burst 3 -j ACCEPT
+iptables -A INPUT -p tcp --dport $SSHPORT -j LOG --log-level 7 --log-prefix "Deny brute force on ssh port"    
+iptables -A INPUT -p tcp --dport $SSHPORT -j DROP
+
+#############################
+#  ACCESS RULES
+#############################
+
+# Allow web server port 80       
+/sbin/iptables -A INPUT -p tcp --dport 80 -j LOG --log-level 7 --log-prefix "Accept 80 HTTP"
+/sbin/iptables -A INPUT -p tcp -d $HOSTNAME --dport 80 -j ACCEPT 
+
+#Allow web server port 443
+
+/sbin/iptables -A INPUT -p tcp --dport 443 -j LOG --log-level 7 --log-prefix "Accept 443 HTTP"
+/sbin/iptables -A INPUT -p tcp -d $HOSTNAME --dport 443 -j ACCEPT 
+
+
+#############################
+#  DEFAULT DENY
+#############################  
+
+/sbin/iptables -A INPUT -d $HOSTNAME -j LOG --log-level 7 --log-prefix "Default Deny"
+/sbin/iptables -A INPUT -j DROP 
+
