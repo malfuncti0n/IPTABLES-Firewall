@@ -4,14 +4,20 @@
 #  SETUP
 #############################
 
-# Define your hostname
+#Define your hostname
 HOSTNAME=52.166.134.91
+#Define your SSH port
 SSHPORT=22
 
+#Define services needed , comma separated
+SERVICES=80,443
+
 ##################################
-#securing TCP protocol parameters 
+#securing TCP protocol parameters# 
 ##################################
 
+echo "securing TCP protocol parameters"
+echo -en '\n'
 # Enable broadcast echo Protection
 echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
 
@@ -61,36 +67,49 @@ echo 0 > /proc/sys/net/ipv4/tcp_ecn
 
 
 
-#############################
-# Allow ssh for managment
-# but secure from brute force 
-#############################
+##############################
+# Allow ssh for managment    #
+# but secure from brute force# 
+##############################
 
 #Disable brute force attack 
+echo "Allowing SSH, disable Brute force Atack"
+echo -en '\n'
+echo "adding rules for port $SSHPORT"
+echo -en '\n'
 iptables -A INPUT -p tcp --dport $SSHPORT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -p tcp --dport $SSHPORT -m state --state NEW -m limit --limit 3/min --limit-burst 3 -j LOG --log-level 7 --log-prefix "Accept ssh port"
 iptables -A INPUT -p tcp --dport $SSHPORT -m state --state NEW -m limit --limit 3/min --limit-burst 3 -j ACCEPT
 iptables -A INPUT -p tcp --dport $SSHPORT -j LOG --log-level 7 --log-prefix "Deny brute force on ssh port"    
 iptables -A INPUT -p tcp --dport $SSHPORT -j DROP
 
+######################################
+#Access Rules, explode from services #
+######################################
+
+#first we explode port for services
+IFS=', ' read -r -a array <<< "$SERVICES"
+
+#element is our port, one port per time.
+for element in "${array[@]}"
+do
+    #for each service needed, we open firewall port.
+    echo "adding rules for port $element"
+    echo -en '\n'
+    echo "/sbin/iptables -A INPUT -p tcp --dport $element -j LOG --log-level 7 --log-prefix \"Accept traffic to port $element\""
+    /sbin/iptables -A INPUT -p tcp --dport $element -j LOG --log-level 7 --log-prefix "Accept traffic to port $element"
+    echo "/sbin/iptables -A INPUT -p tcp -d $HOSTNAME --dport $element -j ACCEPT"
+    /sbin/iptables -A INPUT -p tcp -d $HOSTNAME --dport $element -j ACCEPT
+    echo -en '\n'
+done
+
+
+
 #############################
-#  ACCESS RULES
-#############################
-
-# Allow web server port 80       
-/sbin/iptables -A INPUT -p tcp --dport 80 -j LOG --log-level 7 --log-prefix "Accept 80 HTTP"
-/sbin/iptables -A INPUT -p tcp -d $HOSTNAME --dport 80 -j ACCEPT 
-
-#Allow web server port 443
-
-/sbin/iptables -A INPUT -p tcp --dport 443 -j LOG --log-level 7 --log-prefix "Accept 443 HTTP"
-/sbin/iptables -A INPUT -p tcp -d $HOSTNAME --dport 443 -j ACCEPT 
-
-
-#############################
-#  DEFAULT DENY
+#Default deny               #
 #############################  
 
 /sbin/iptables -A INPUT -d $HOSTNAME -j LOG --log-level 7 --log-prefix "Default Deny"
 /sbin/iptables -A INPUT -j DROP 
+
 
