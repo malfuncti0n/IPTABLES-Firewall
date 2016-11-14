@@ -3,7 +3,7 @@
 #VARIABLE DEFINITION
 
 #find your local ip 
-HOSTNAME=ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'
+LOCALIP=`ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/'`
 #Define your SSH port
 SSHPORT=22
 
@@ -116,8 +116,8 @@ do
     echo -en '\n'
     echo "/sbin/iptables -A INPUT -p tcp --dport $element -j LOG --log-level 7 --log-prefix \"Accept traffic to port $element\""
     /sbin/iptables -A INPUT -p tcp --dport $element -j LOG --log-level 7 --log-prefix "Accept traffic to port $element"
-    echo "/sbin/iptables -A INPUT -p tcp -d $HOSTNAME --dport $element -j ACCEPT"
-    /sbin/iptables -A INPUT -p tcp -d $HOSTNAME --dport $element -j ACCEPT
+    echo "/sbin/iptables -A INPUT -p tcp -d $LOCALIP --dport $element -j ACCEPT"
+    /sbin/iptables -A INPUT -p tcp -d $LOCALIP --dport $element -j ACCEPT
     echo -en '\n'
 done
 
@@ -127,7 +127,7 @@ done
 #Default deny               #
 #############################  
 
-/sbin/iptables -A INPUT -d $HOSTNAME -j LOG --log-level 7 --log-prefix "Default Deny"
+/sbin/iptables -A INPUT -d $LOCALIP -j LOG --log-level 7 --log-prefix "Default Deny"
 /sbin/iptables -A INPUT -j DROP 
 
 
