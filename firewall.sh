@@ -10,8 +10,8 @@ localip=`ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  
 sshport=22
 
 #Define services needed , comma separated
-services=80,443
-
+services=80,443,53
+udpservices=
 #file with ips to ban
 badips=badips.db
 ips=`cat $badips | egrep -v "^#|^$"`
@@ -146,7 +146,7 @@ echo -en '\n'
 ######################################
 #Access Rules, explode from services #
 ######################################
-
+#tcp rules
 #first we explode port fror services
 IFS=', ' read -r -a array <<< "$services"
 
@@ -163,7 +163,22 @@ do
     echo -en '\n'
 done
 
+#udprules
 
+IFS=', ' read -r -a array <<< "$udpservices"
+
+#element is our port, one port per time.
+for element in "${array[@]}"
+do
+    #for each service needed, we open firewall port.
+    echo "adding rules for port $element"
+    echo -en '\n'
+    echo "/sbin/iptables -A INPUT -p udp --dport $element -j LOG --log-level 7 --log-prefix \"Accept traffic to port $element\""
+    /sbin/iptables -A INPUT -p udp --dport $element -j LOG --log-level 7 --log-prefix "Accept traffic to port $element"
+    echo "/sbin/iptables -A INPUT -p udp -d $localip --dport $element -j ACCEPT"
+    /sbin/iptables -A INPUT -p udp -d $localip --dport $element -j ACCEPT
+    echo -en '\n'
+done
 
 #############################
 #Default deny               #
