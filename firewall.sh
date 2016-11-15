@@ -4,11 +4,19 @@
 
 #find your local ip 
 LOCALIP=`ip addr | grep 'state UP' -A2 | tail -n1 | awk '{print $2}' | cut -f1  -d'/'`
+
 #Define your SSH port
 SSHPORT=22
 
 #Define services needed , comma separated
 SERVICES=80,443
+
+#file with ips to ban
+BADIPS=badips.db
+IPS=`cat $BADIPS | egrep -v "^#|^$"`
+
+# Die if file not found
+[ ! -f "$BADIPS" ] && { echo "$0: File $BADIPS not found."; exit 1; }
 
 ##################################
 #securing TCP protocol parameters# 
@@ -78,6 +86,34 @@ echo -en '\n'
 /sbin/iptables -A INPUT -i lo -j ACCEPT
 
 
+#############################
+#create new chain for badips#
+#############################
+
+/sbin/iptables  -N droplist
+
+
+# Filter out comments and blank lines
+# store each ip or subnet in $ip
+## Ban Ips
+for banip in $IPS; do
+        # Append everything to droplist
+	echo "/sbin/iptables -A droplist -s $banip -j LOG --log-level 7  --log-prefix \"Drop Bad IP List\""
+	/sbin/iptables -A droplist -s $banip -j LOG --log-level 7  --log-prefix "Drop Bad IP List"
+	echo "/sbin/iptables -A droplist -s $banip  -j DROP"
+	/sbin/iptables -A droplist -s $banip -j DROP
+done
+
+# Finally, insert or append our black list 
+echo "/sbin/iptables -I INPUT -j droplist"
+/sbin/iptables -I INPUT -j droplist
+echo "/sbin/iptables -I OUTPUT -j droplist"
+/sbin/iptables -I OUTPUT -j droplist
+echo "/sbin/iptables -I FORWARD -j droplist"
+/sbin/iptables -I FORWARD -j droplist
+
+
+
 ##############################
 # Allow ssh for managment    #
 # but secure from brute force# 
@@ -129,5 +165,4 @@ done
 
 /sbin/iptables -A INPUT -d $LOCALIP -j LOG --log-level 7 --log-prefix "Default Deny"
 /sbin/iptables -A INPUT -j DROP 
-
 
