@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 #step 0, variable definition
 
 #find your local ip 
@@ -19,9 +18,7 @@ ips=`cat $badips | egrep -v "^#|^$"`
 # Die if file not found
 [ ! -f "$badips" ] && { echo "$0: File $badips not found."; exit 1; }
 
-
 #step 1, securing TCP protocol
-
 
 echo "step 1, securing TCP protocol..."
 echo -en '\n'
@@ -38,7 +35,6 @@ echo 0 > /proc/sys/net/ipv4/conf/default/accept_source_route
 # Enable TCP SYN Cookie Protection
 echo "echo 1 > /proc/sys/net/ipv4/tcp_syncookies"
 echo 1 > /proc/sys/net/ipv4/tcp_syncookies
-
 
 # Disable ICMP Redirect Acceptance
 echo "echo 0 > /proc/sys/net/ipv4/conf/default/accept_redirects"
@@ -68,7 +64,6 @@ echo 1 > /proc/sys/net/ipv4/conf/default/log_martians
 echo "echo 0 > /proc/sys/net/ipv4/tcp_ecn"
 echo 0 > /proc/sys/net/ipv4/tcp_ecn
 
-
 echo -en '\n'
 echo "step 1, securing TCP protocol...Done!"
 echo -en '\n'
@@ -91,13 +86,11 @@ echo "step 2, create firewall rules..."
 # Allow localhost traffic
 /sbin/iptables -A INPUT -i lo -j ACCEPT
 
-
 #############################
 #create new chain for badips#
 #############################
 
 /sbin/iptables  -N droplist
-
 
 # Filter out comments and blank lines
 # store each ip or subnet in $ip
@@ -117,8 +110,6 @@ echo "/sbin/iptables -I OUTPUT -j droplist"
 /sbin/iptables -I OUTPUT -j droplist
 echo "/sbin/iptables -I FORWARD -j droplist"
 /sbin/iptables -I FORWARD -j droplist
-
-
 
 ##############################
 # Allow ssh for managment    #
