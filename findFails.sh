@@ -7,7 +7,7 @@ triggerfirewall=0
 
 #get all failed attemps
 grep "authentication failure" /var/log/auth.log* | grep rhost | sed -re 's/.*rhost=([^ ]+).*/\1/' | sort | uniq -c > tries
-numoffails=3
+numoffails=5
 counter=1
 for i in `cat tries | awk '{print $1}'`
 do
@@ -17,7 +17,7 @@ then
 tempip=`sed "${counter}q;d" tries | awk '{print $2}'` 
 echo $tempip
 #chech if ip is allready in badips.db if not we added and change the triggerfirewall to 1
-        if grep -Fxq "$tempip" badips.db
+        if grep -Fxq "$tempip" badips.db || grep -Fxq "#$tempip" badips.db
         then
         echo "$tempip found in badips.db"
         else
@@ -44,4 +44,3 @@ echo "new ip(s) added in badips.db, reinicialize firewall"
 echo "bash $path/firewall.sh" 
 bash $path/firewall.sh
 fi
-
