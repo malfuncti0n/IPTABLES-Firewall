@@ -156,14 +156,14 @@ do
     #for each service needed, we open firewall port.
     echo "adding rules for port $element"
     echo -en '\n'
-    echo "/sbin/iptables -A INPUT -p tcp --dport $element -j LOG --log-level 7 --log-prefix \"Accept traffic to port $element\""
-    /sbin/iptables -A INPUT -p tcp --dport $element -j LOG --log-level 7 --log-prefix "Accept traffic to port $element"
+    echo "/sbin/iptables -A INPUT -p tcp --dport $element -j LOG --log-level 7 --log-prefix \"Accept traffic to port $element tcp\""
+    /sbin/iptables -A INPUT -p tcp --dport $element -j LOG --log-level 7 --log-prefix "Accept traffic to port $element tcp"
     echo "/sbin/iptables -A INPUT -p tcp -d $localip --dport $element -j ACCEPT"
     /sbin/iptables -A INPUT -p tcp -d $localip --dport $element -j ACCEPT
     echo -en '\n'
 done
 
-#udprules
+#udp rules
 
 IFS=', ' read -r -a array <<< "$udpservices"
 
@@ -173,8 +173,8 @@ do
     #for each service needed, we open firewall port.
     echo "adding rules for port $element"
     echo -en '\n'
-    echo "/sbin/iptables -A INPUT -p udp --dport $element -j LOG --log-level 7 --log-prefix \"Accept traffic to port $element\""
-    /sbin/iptables -A INPUT -p udp --dport $element -j LOG --log-level 7 --log-prefix "Accept traffic to port $element"
+    echo "/sbin/iptables -A INPUT -p udp --dport $element -j LOG --log-level 7 --log-prefix \"Accept traffic to port $element udp\""
+    /sbin/iptables -A INPUT -p udp --dport $element -j LOG --log-level 7 --log-prefix "Accept traffic to port $element udp"
     echo "/sbin/iptables -A INPUT -p udp -d $localip --dport $element -j ACCEPT"
     /sbin/iptables -A INPUT -p udp -d $localip --dport $element -j ACCEPT
     echo -en '\n'
