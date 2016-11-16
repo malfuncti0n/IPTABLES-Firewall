@@ -1,2 +1,6 @@
+
 #put your ips, one per line
 1.2.3.4
+#you can  whitelist an ip by appent a # infront
+#1.2.3.4
+#findFails.sh daemont auto appent ips with current timestamp
